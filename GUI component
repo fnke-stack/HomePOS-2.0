@@ -1,0 +1,53 @@
+# pos_gui.py
+import tkinter as tk
+from tkinter import ttk
+from database import get_daily_transactions, get_daily_expenses
+
+class HomePOS:
+    # Existing code...
+
+    def create_widgets(self):
+        # Existing code...
+        self.view_logs_button = tk.Button(self.root, text="View Logs", command=self.view_logs)
+        self.view_logs_button.pack(pady=10)
+
+    def view_logs(self):
+        logs_window = tk.Toplevel(self.root)
+        logs_window.title("Daily Logs")
+
+        columns = ("sr_no", "date", "item", "quantity", "price", "type")
+        tree = ttk.Treeview(logs_window, columns=columns, show="headings")
+        tree.heading("sr_no", text="SR.NO.")
+        tree.heading("date", text="DATE")
+        tree.heading("item", text="ITEM")
+        tree.heading("quantity", text="QUANTITY")
+        tree.heading("price", text="PRICE")
+        tree.heading("type", text="TYPE")
+
+        # Optionally set column widths
+        tree.column("sr_no", width=50)
+        tree.column("date", width=100)
+        tree.column("item", width=150)
+        tree.column("quantity", width=100)
+        tree.column("price", width=100)
+        tree.column("type", width=100)
+
+        tree.pack(fill=tk.BOTH, expand=True)
+
+        transactions = get_daily_transactions() or []
+        expenses = get_daily_expenses() or []
+
+        sr_no = 1
+        for transaction in transactions:
+            tree.insert("", "end", values=(sr_no, transaction[1], transaction[2], transaction[3], transaction[4], "Income"))
+            sr_no += 1
+
+        for expense in expenses:
+            tree.insert("", "end", values=(sr_no, expense[1], expense[2], "-", expense[3], "Expense"))
+            sr_no += 1
+
+        total_income = sum([transaction[4] for transaction in transactions])
+        total_expense = sum([expense[3] for expense in expenses])
+
+        tk.Label(logs_window, text=f"Total Income: {total_income}").pack(pady=5)
+        tk.Label(logs_window, text=f"Total Expense: {total_expense}").pack(pady=5)
